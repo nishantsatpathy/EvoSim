@@ -6,20 +6,24 @@ import numpy as np
 import matplotlib.animation as animation
 
 class Creature:
-    def __init__(self,x,y,speed,sight):
+    def __init__(self,x,y,speed,sight, full=0.5):
         self.x = x
         self.y = y
         self.speed = speed
         self.sight = sight
+        self.full = full
 
     def find_food(self, foodlist):
         for food in foodlist:
             if ((food.x-self.x)**2+(food.y-self.y)**2)**0.5<self.sight:
                 self.x = food.x
                 self.y = food.y
+                self.full+=0.2
                 return True
         return False
+
     def move(self,foodlist):
+        self.full-=.05
         if not(self.find_food(foodlist)):
             theta = randint(0,359)
             self.x+=self.speed*math.cos(math.pi*theta/180.)
@@ -38,7 +42,7 @@ class Food:
         self.x = x
         self.y = y
 
-foodlist = [Food(randint(-100,100),randint(-100,100)) for i in range(50)]
+foodlist = [Food(randint(-100,100),randint(-100,100)) for i in range(100)]
 
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
@@ -51,8 +55,14 @@ while True:
     plt.xlim(-100,100)
     plt.ylim(-100,100)
     plt.pause(0.1)
+    print(len(creaturelist))
     for creature in creaturelist:
         creature.move(foodlist)
+        if creature.full<0:
+            creaturelist.remove(creature)
+        if creature.full>1:
+            creature.full = 0.5*creature.full
+            creaturelist.append(Creature(-100,randint(-100,100),20,10,0.5*creature.full))
         for food in foodlist:
             if creature.x==food.x and creature.y == food.y:
                 foodlist.remove(food)
